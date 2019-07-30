@@ -19,14 +19,6 @@ package org.codehaus.mojo.versions;
  * under the License.
  */
 
-import java.io.File;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.apache.maven.artifact.metadata.ArtifactMetadataRetrievalException;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.doxia.sink.Sink;
@@ -38,6 +30,14 @@ import org.apache.maven.reporting.MavenReportException;
 import org.codehaus.mojo.versions.api.ArtifactVersions;
 import org.codehaus.mojo.versions.utils.DependencyComparator;
 import org.codehaus.plexus.util.StringUtils;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Generates a report of available updates for the dependencies of a project.
@@ -52,7 +52,7 @@ public class DependencyUpdatesReport
 
     /**
      * Whether to process the <code>dependencyManagement</code> in pom or not.
-     * 
+     *
      * @since 2.5
      */
     @Parameter( property = "processDependencyManagement", defaultValue = "true" )
@@ -62,10 +62,10 @@ public class DependencyUpdatesReport
      * Whether to process the depdendencyManagement part transitive or not.
      * In case of <code>&lt;type&gt;pom&lt;/type&gt;</code>and
      * <code>&lt;scope&gt;import&lt;/scope&gt;</code> this means
-     * by default to report also the imported dependencies. 
+     * by default to report also the imported dependencies.
      * If processTransitive is set to <code>false</code> the report will only show
      * updates of the imported pom it self.
-     * 
+     *
      * @since 2.5 Note: Currently in experimental state.
      */
     @Parameter( property = "processDependencyManagementTransitive", defaultValue = "true" )
@@ -73,7 +73,7 @@ public class DependencyUpdatesReport
 
     /**
      * Report formats (html and/or xml). HTML by default.
-     * 
+     *
      */
     @Parameter( property = "dependencyUpdatesReportFormats", defaultValue = "html" )
     private String[] formats = new String[] { "html" };
@@ -133,6 +133,17 @@ public class DependencyUpdatesReport
                 {
                     getLog().debug( "Original Dpmg: " + dep.getGroupId() + ":" + dep.getArtifactId() + ":"
                         + dep.getVersion() + ":" + dep.getType() + ":" + dep.getScope() );
+                    if ( dep.getVersion().startsWith("${") && dep.getVersion().endsWith("}") )
+                    {
+                        String propertyName = dep.getVersion().substring(2, dep.getVersion().length() - 1);
+                        String propertyValue = getProject().getProperties().getProperty(propertyName);
+                        if ( propertyValue != null )
+                        {
+                            getLog().info("Resolving version of " + dep.getGroupId() + ":" + dep.getArtifactId() +
+                                          " from " + dep.getVersion() + " to " + propertyValue);
+                            dep.setVersion(propertyValue);
+                        }
+                    }
                 }
                 dependencyManagement.addAll( getProject().getOriginalModel().getDependencyManagement().getDependencies() );
             }
