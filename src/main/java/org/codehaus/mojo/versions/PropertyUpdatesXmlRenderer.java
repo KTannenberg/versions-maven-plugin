@@ -173,7 +173,7 @@ public class PropertyUpdatesXmlRenderer {
   private static boolean renderScopeDetails(XMLWriter xml, PropertyVersions versions, UpdateScope scope) throws IOException {
     String tag = scope.name().toLowerCase();
     ArtifactVersion[] updates = versions.getAllUpdates(scope);
-    if (updates.length == 0) {
+    if (updates == null || updates.length == 0) {
       return false;
     } else {
       xml.startElement(tag + "s");
